@@ -5,7 +5,7 @@ use tokio::time::{sleep_until, Duration, Instant};
 async fn main() {
     let mut next_tick = Instant::now();
     let mut game_of_life = GameOfLife {
-        cells: [[false; 8]; 8],
+        cells: [[false; 64]; 32],
     };
     game_of_life.randomize();
     loop {
@@ -21,7 +21,7 @@ async fn main() {
 }
 
 struct GameOfLife {
-    cells: [[bool; 8]; 8],
+    cells: [[bool; 64]; 32],
 }
 
 impl GameOfLife {
@@ -35,7 +35,13 @@ impl GameOfLife {
     }
 
     fn update(&mut self) {
-        let previous_cells = self.cells;
+        let previous_cells = self.cells.to_owned(); // need to learn what to_owned() really does
+        for (y, row) in previous_cells.iter().enumerate() {
+            for (x, alive) in row.iter().enumerate() {
+                let alive_neighbors = GameOfLife::count_alive_neighbors(&previous_cells, x, y);
+                self.cells[y][x] = alive_neighbors == 3 || *alive && alive_neighbors == 2;
+            }
+        }
     }
 
     fn draw(&self) {
@@ -43,12 +49,29 @@ impl GameOfLife {
         string_cells.push_str("\x1B[2J\x1B[1;1H"); // clears screen
         for row in self.cells.iter() {
             for alive in row.iter() {
-                string_cells.push_str(if *alive { " ◼" } else { " ◻" });
+                string_cells.push_str(if *alive { "O" } else { " " });
             }
-            string_cells.push_str("\n"); // new line
+            string_cells.push('\n');
         }
         println!("{}", string_cells);
     }
+
+    fn count_alive_neighbors(cells: &[[bool; 64]; 32], x: usize, y: usize) -> usize {
+        // how do I handle this array argument with variable length?
+        let above = if y == 0 { cells.len() - 1 } else { y - 1 };
+        let below = if y == cells.len() - 1 { 0 } else { y + 1 };
+        let left = if x == 0 { cells[0].len() - 1 } else { x - 1 };
+        let right = if x == cells[0].len() - 1 { 0 } else { x + 1 };
+        let neighbors = [
+            cells[above][left],
+            cells[above][x],
+            cells[above][right],
+            cells[y][left],
+            cells[y][right],
+            cells[below][left],
+            cells[below][x],
+            cells[below][right],
+        ];
+        return neighbors.iter().filter(|alive| **alive).count(); // learn what is a double borrow?
+    }
 }
-
-
