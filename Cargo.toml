@@ -2,9 +2,17 @@
 name = "rust-life"
 version = "0.1.0"
 edition = "2018"
+authors = [
+    "Greg Taylor <GregorySDTaylor@gmail.com>"
+]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[[bin]]
+name = "rust-life"
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
 rand = "0.8.4"
+piston = "0.53.0"
+piston2d-graphics = "0.40.0"
+pistoncore-glutin_window = "0.69.0"
+piston2d-opengl_graphics = "0.78.0"
